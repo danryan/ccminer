@@ -27,7 +27,7 @@ uint32_t *d_fugue256_hashoutput[8];
 uint32_t *d_resultNonce[8];
 
 __constant__ uint32_t GPUstate[30]; // Single GPU
-__constant__ uint32_t pTarget[8]; // Single GPU
+__constant__ uint32_t fugue256_pTarget[8]; // Single GPU
 
 texture<unsigned int, 1, cudaReadModeElementType> mixTab0Tex;
 texture<unsigned int, 1, cudaReadModeElementType> mixTab1Tex;
@@ -704,11 +704,11 @@ fugue256_gpu_hash(int thr_id, int threads, uint32_t startNounce, void *outputHas
 		bool rc = true;
 	
 		for (i = 7; i >= 0; i--) {
-			if (hash[i] > pTarget[i]) {
+			if (hash[i] > fugue256_pTarget[i]) {
 				rc = false;
 				break;
 			}
-			if (hash[i] < pTarget[i]) {
+			if (hash[i] < fugue256_pTarget[i]) {
 				rc = true;
 				break;
 			}
@@ -759,7 +759,7 @@ __host__ void fugue256_cpu_setBlock(int thr_id, void *data, void *pTargetIn)
 						ctx_fugue_const.S,
 						sizeof(uint32_t) * 30 );
 
-	cudaMemcpyToSymbol(	pTarget,
+	cudaMemcpyToSymbol(	fugue256_pTarget,
 						pTargetIn,
 						sizeof(uint32_t) * 8 );
 

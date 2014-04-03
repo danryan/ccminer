@@ -1,0 +1,67 @@
+JANSSON_INCLUDEPATH=compat/jansson
+CUDA_INCLUDEPATH=/usr/local/cuda/include
+CUDA_LIBPATH=/usr/local/cuda/lib64
+
+NVCC=/usr/local/cuda/bin/nvcc
+GENCODE_OPTS=-gencode arch=compute_50,code=sm_50
+
+NVCC_OPTS=-O3  -Xptxas -v
+GCC_OPTS=-O3 -m64 -
+GXX_OPTS=-O3 -m64
+
+.cu.o: 
+.c.o:
+.cpp.o:
+
+ccminer_SOURCES		= elist.h miner.h compat.h \
+			  compat/inttypes.h compat/stdbool.h compat/unistd.h \
+			  compat/sys/time.h compat/getopt/getopt.h \
+			  cpu-miner.c util.c blake.c groestl.c hefty1.c keccak.c scrypt.c sha2.c \
+			  sph_blake.h sph_groestl.h sph_keccak.h sph_types.h \
+			  heavy.cu \
+			  cuda_blake512.cu cuda_blake512.h \
+			  cuda_combine.cu cuda_combine.h \
+			  cuda_groestl512.cu cuda_groestl512.h \
+			  cuda_hefty1.cu cuda_hefty1.h \
+			  cuda_keccak512.cu cuda_keccak512.h \
+			  cuda_sha256.cu cuda_sha256.h \
+			  fuguecoin.cpp cuda_fugue256.cu fugue.c sph_fugue.h uint256.h \
+			  groestlcoin.cpp cuda_groestlcoin.cu cuda_groestlcoin.h
+
+
+ccminer_LDFLAGS		= $(PTHREAD_FLAGS) @CUDA_LDFLAGS@ -Wl,-V -O3
+ccminer_LDADD		= @LIBCURL@ @JANSSON_LIBS@ @PTHREAD_LIBS@ @WS2_LIBS@ @CUDA_LIBS@ @OPENMP_CFLAGS@ @LIBS@
+ccminer_CPPFLAGS	= -msse2 @LIBCURL_CPPFLAGS@ @OPENMP_CFLAGS@ $(PTHREAD_FLAGS) -fno-strict-aliasing $(JANSSON_INCLUDES) -DSCRYPT_KECCAK512 -DSCRYPT_CHACHA -DSCRYPT_CHOOSE_COMPILETIME
+
+GENCODE_FLAGS = -gencode arch=compute_50,code=sm_50
+
+NVCCFLAGS = -m64 -dc -Xptxas -v --ptxas-options=-v ${GENCODE_FLAGS} @CFLAGS@
+NVCCLDFLAGS = -dlink -Xnvlink -v 
+
+
+.c.o:
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c $<
+
+
+
+
+
+
+# we're now targeting all major compute architectures within one binary.
+# ignoring Compute < 5.x for now
+# $(NVCC) @CFLAGS@ -Xptxas "-abi=no -v" -gencode=arch=compute_20,code=\"sm_20,compute_20\" -gencode=arch=compute_30,code=\"sm_30,compute_30\" -gencode=arch=compute_35,code=\"sm_35,compute_35\" -gencode=arch=compute_50,code=\"sm_50,compute_50\" --ptxas-options=-v $(JANSSON_INCLUDES) -o $@ -c $<
+
+# .o.cpp
+# $(NVCC) @CFLAGS@ -Xptxas "-v" -arch=compute_50 -code=sm_50 --ptxas-options=-v -dlink -o $@ 
+# $(NVCC) @CFLAGS@ -rdc=true -g -dc -Xptxas "-v" -arch=compute_50 -code=sm_50 --ptxas-options=-v $(JANSSON_INCLUDES) -o $@ -c $<
+
+
+## .cu.o:
+## 	$(NVCC) @CFLAGS@ $(NVCCFLAGS) $(GENCODE_FLAGS) $(JANSSON_INCLUDES) -o $@ $<
+## 	$(NVCC) -dlink -Xnvlink -v @CUDA_LDFLAGS@ @CUDA_LIBS@ $(GENCODE_FLAGS) -o ccminer-link.o $@
+## 	g++ $@ ccminer-link.o @CUDA_CFLAGS@ @CUDA_LIBS@ @CUDA_LDFLAGS@ $(JANSSON_INCLUDES)
+
