@@ -5,10 +5,10 @@ else
 JANSSON_INCLUDES=
 endif
 
-GENCODE_OPTS=-gencode arch=compute_50,code=sm_50
-# NVCC_OPTS=-dc -dlink -Xptxas "-abi=no -v" -Xnvlink -v --ptxas-options=-v
+# GENCODE_OPTS=-gencode arch=compute_50,code=sm_50
+GENCODE_OPTS=-gencode=arch=compute_20,code=\"sm_20,compute_20\" -gencode=arch=compute_30,code=\"sm_30,compute_30\" -gencode=arch=compute_35,code=\"sm_35,compute_35\"
 NVCC_OPTS=-dc -Xptxas -v --ptxas-options=-v
-NVCC_LINK_OPTS=-dlink -Xnvlink -v -Xlinker -v
+NVLINK_OPTS=-dlink -Xnvlink -v -Xlinker -v
 CUDA_OBJ=ccminer-link.o
 
 EXTRA_DIST		= autogen.sh README.txt LICENSE.txt \
@@ -38,7 +38,7 @@ ccminer_LDFLAGS		= $(PTHREAD_FLAGS) @CUDA_LDFLAGS@
 ccminer_LDADD		= @LIBCURL@ @JANSSON_LIBS@ @PTHREAD_LIBS@ @WS2_LIBS@ @CUDA_LIBS@ @OPENMP_CFLAGS@ @LIBS@  -ldl
 ccminer_CPPFLAGS	= -msse2 @LIBCURL_CPPFLAGS@ @OPENMP_CFLAGS@ $(PTHREAD_FLAGS) -fno-strict-aliasing $(JANSSON_INCLUDES) -DSCRYPT_KECCAK512 -DSCRYPT_CHACHA -DSCRYPT_CHOOSE_COMPILETIME
 
-NVLINK_CMD=$(NVCC) $(NVCC_LINK_OPTS) $(GENCODE_OPTS) *.o -o $(CUDA_OBJ)
+NVLINK_CMD=$(NVCC) $(NVLINK_OPTS) $(GENCODE_OPTS) *.o -o $(CUDA_OBJ)
 CXXLINK_CMD=$(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(ccminer_LDFLAGS) $(LDFLAGS) -o $@ $(CUDA_OBJ)
 
 ccminer_LINK = $(NVLINK_CMD) && $(CXXLINK_CMD)
