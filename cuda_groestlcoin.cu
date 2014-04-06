@@ -21,7 +21,7 @@ typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 
 // globaler Speicher für alle HeftyHashes aller Threads
-__constant__ uint32_t pTarget[8]; // Single GPU
+__constant__ uint32_t groestlcoin_pTarget[8]; // Single GPU
 extern uint32_t *d_resultNonce[8];
 
 __constant__ uint32_t groestlcoin_gpu_msg[32];
@@ -374,13 +374,13 @@ __global__ void
 
 #pragma unroll 8
 		for (i = 7; i >= 0; i--) {
-			if (state[i+16] > pTarget[i]) {
+			if (state[i+16] > groestlcoin_pTarget[i]) {
 				if(position < i) {
 					position = i;
 					rc = false;
 				}
 	 		}
-	 		if (state[i+16] < pTarget[i]) {
+	 		if (state[i+16] < groestlcoin_pTarget[i]) {
 				if(position < i) {
 					position = i;
 					rc = true;
@@ -445,7 +445,7 @@ __host__ void groestlcoin_cpu_setBlock(int thr_id, void *data, void *pTargetIn)
 						128);
 
 	cudaMemset(d_resultNonce[thr_id], 0xFF, sizeof(uint32_t));
-	cudaMemcpyToSymbol(	pTarget,
+	cudaMemcpyToSymbol(	groestlcoin_pTarget,
 						pTargetIn,
 						sizeof(uint32_t) * 8 );
 }
